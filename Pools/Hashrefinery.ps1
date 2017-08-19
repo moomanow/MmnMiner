@@ -20,7 +20,7 @@ $Hashrefinery_Request | Get-Member -MemberType NoteProperty | Select-Object -Exp
     $Hashrefinery_Coin = ""
 
     $Divisor = 1000000
-	
+
     switch ($Hashrefinery_Algorithm) {
         "equihash" {$Divisor /= 1000}
         "blake2s" {$Divisor *= 1000}
@@ -30,19 +30,22 @@ $Hashrefinery_Request | Get-Member -MemberType NoteProperty | Select-Object -Exp
 
     if ((Get-Stat -Name "$($Name)_$($Hashrefinery_Algorithm)_Profit") -eq $null) {$Stat = Set-Stat -Name "$($Name)_$($Hashrefinery_Algorithm)_Profit" -Value ([Double]$Hashrefinery_Request.$_.estimate_last24h / $Divisor)}
     else {$Stat = Set-Stat -Name "$($Name)_$($Hashrefinery_Algorithm)_Profit" -Value ([Double]$Hashrefinery_Request.$_.estimate_current / $Divisor)}
-	
+
     if ($Wallet) {
         [PSCustomObject]@{
             Algorithm     = $Hashrefinery_Algorithm
             Info          = $Hashrefinery_Coin
-            Price         = $Stat.Live
+            Price         = $Stat.Hour
             StablePrice   = $Stat.Week
             MarginOfError = $Stat.Week_Fluctuation
+            DecayPeriod        = 300 #seconds
+            DecayBase          = 1-0.05 #decimal percentage
+            ProfitMorthanBase  = 1-0.05 #decimal percentage
             Protocol      = "stratum+tcp"
             Host          = $Hashrefinery_Host
             Port          = $Hashrefinery_Port
-            User          = $Wallet 
-            Pass          = "$WorkerName,c=BTC" 
+            User          = $Wallet
+            Pass          = "$WorkerName,c=BTC"
             Location      = $Location
             SSL           = $false
         }

@@ -13,6 +13,8 @@ $Name = (Get-Item $script:MyInvocation.MyCommand.Path).BaseName
 
 $Location = "US"
 
+[double]$base = 0.00200
+
 $Zpool_Request | Get-Member -MemberType NoteProperty | Select-Object -ExpandProperty Name | ForEach-Object {
     $Zpool_Host = "$_.mine.zpool.ca"
     $Zpool_Port = $Zpool_Request.$_.port
@@ -20,7 +22,7 @@ $Zpool_Request | Get-Member -MemberType NoteProperty | Select-Object -ExpandProp
     $Zpool_Coin = ""
 
     $Divisor = 1000000
-	
+
     switch ($Zpool_Algorithm) {
         "equihash" {$Divisor /= 1000}
         "blake2s" {$Divisor *= 1000}
@@ -35,16 +37,16 @@ $Zpool_Request | Get-Member -MemberType NoteProperty | Select-Object -ExpandProp
 
     if ((Get-Stat -Name "$($Name)_$($Zpool_Algorithm)_Profit") -eq $null) {$Stat = Set-Stat -Name "$($Name)_$($Zpool_Algorithm)_Profit" -Value ([Double]$Zpool_Request.$_.estimate_last24h / $Divisor)}
     else {$Stat = Set-Stat -Name "$($Name)_$($Zpool_Algorithm)_Profit" -Value ([Double]$Zpool_Request.$_.estimate_current / $Divisor)}
-	
     if ($Wallet) {
         [PSCustomObject]@{
             Algorithm     = $Zpool_Algorithm
             Info          = $Zpool_Coin
-            Price         = $Stat.Minute_10
-			actual_last24h   = $Zpool_Request.$_.actual_last24h
-			estimate_last24h = $Zpool_Request.$_.estimate_last24h
+			Price         = $Stat.Hour
             StablePrice   = $Stat.Week
             MarginOfError = $Stat.Week_Fluctuation
+            DecayPeriod        = 45 #seconds
+            DecayBase          = 1-0.01 #decimal percentage
+            ProfitMorthanBase  = 1-0.05 #decimal percentage
             Protocol      = "stratum+tcp"
             Host          = $Zpool_Host
             Port          = $Zpool_Port
