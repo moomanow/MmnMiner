@@ -297,7 +297,7 @@ while($true)
     #Do nothing for a few seconds as to not overload the APIs
     Sleep $Interval
 
-    autoupdate $True
+    autoupdate -autoupdate
     #Save current hash rates
     $ActiveMinerPrograms | ForEach {
         $_.HashRate = 0
