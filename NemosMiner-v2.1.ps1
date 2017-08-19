@@ -48,8 +48,9 @@ else{$PSDefaultParameterValues["*:Proxy"] = $Proxy}
 . .\Include.ps1
 
 $DecayStart = Get-Date
-$DecayPeriod = 60 #seconds
-$DecayBase = 1-0.1 #decimal percentage
+$DecayPeriod = 300 #seconds
+$DecayBase = 1-0.05 #decimal percentage
+$ProfitMorthanBase = 1-0.05 #decimal percentage
 
 $ActiveMinerPrograms = @()
 
@@ -162,7 +163,7 @@ while($true)
             $Miner_Pools_Comparison | Add-Member $_ ([PSCustomObject]$Pools_Comparison.$_)
             $Miner_Profits | Add-Member $_ ([Double]$Miner.HashRates.$_*$Pools.$_.Price)
             $Miner_Profits_Comparison | Add-Member $_ ([Double]$Miner.HashRates.$_*$Pools_Comparison.$_.Price)
-            $Miner_Profits_Bias | Add-Member $_ ([Double]$Miner.HashRates.$_*$Pools.$_.Price*(1-($Pools.$_.MarginOfError*[Math]::Pow($DecayBase,$DecayExponent))))
+            $Miner_Profits_Bias | Add-Member $_ ([Double]$Miner.HashRates.$_*$ProfitMorthanBase*$Pools.$_.Price*(1-($Pools.$_.MarginOfError*[Math]::Pow($DecayBase,$DecayExponent))))
         }
         
         $Miner_Profit = [Double]($Miner_Profits.PSObject.Properties.Value | Measure -Sum).Sum
@@ -197,6 +198,7 @@ while($true)
         $Miner | Add-Member Profit $Miner_Profit
         $Miner | Add-Member Profit_Comparison $Miner_Profit_Comparison
         $Miner | Add-Member Profit_Bias $Miner_Profit_Bias
+		$Miner | Add-Member Status "Running"
         
         $Miner | Add-Member Type $Miner_Types -Force
         $Miner | Add-Member Index $Miner_Indexes -Force
@@ -212,7 +214,7 @@ while($true)
     }
 
     #Don't penalize active miners
-    $ActiveMinerPrograms | ForEach {$Miners | Where Path -EQ $_.Path | Where Arguments -EQ $_.Arguments | ForEach {$_.Profit_Bias = $_.Profit}}
+    $ActiveMinerPrograms | ForEach {$Miners | Where Path -EQ $_.Path | Where Arguments -EQ $_.Arguments | Where Status -EQ $_.Status | ForEach {$_.Profit_Bias = $_.Profit}}
 
     #Get most profitable miner combination i.e. AMD+NVIDIA+CPU
     $BestMiners = $Miners | Select Type,Index -Unique | ForEach {$Miner_GPU = $_; ($Miners | Where {(Compare $Miner_GPU.Type $_.Type | Measure).Count -eq 0 -and (Compare $Miner_GPU.Index $_.Index | Measure).Count -eq 0} | Sort -Descending {($_ | Where Profit -EQ $null | Measure).Count},{($_ | Measure Profit_Bias -Sum).Sum},{($_ | Where Profit -NE 0 | Measure).Count} | Select -First 1)}
@@ -290,6 +292,7 @@ while($true)
         @{Label = "Algorithm"; Expression={$_.HashRates.PSObject.Properties.Name}}, 
         @{Label = "Speed"; Expression={$_.HashRates.PSObject.Properties.Value | ForEach {if($_ -ne $null){"$($_ | ConvertTo-Hash)/s"}else{"Benchmarking"}}}; Align='right'}, 
         @{Label = "BTC/Day"; Expression={$_.Profits.PSObject.Properties.Value | ForEach {if($_ -ne $null){$_.ToString("N5")}else{"Benchmarking"}}}; Align='right'}, 
+        @{Label = "BTC/Day"; Expression={if($_.Profit_Bias -ne $null){$_.Profit_Bias.ToString("N5")}else{"Benchmarking"}}; Align='right'}, 
         @{Label = "BTC/GH/Day"; Expression={$_.Pools.PSObject.Properties.Value.Price | ForEach {($_*1000000000).ToString("N5")}}; Align='right'}, 
         @{Label = "Pool"; Expression={$_.Pools.PSObject.Properties.Value | ForEach {"$($_.Name)-$($_.Info)"}}}
     ) | Out-Host
