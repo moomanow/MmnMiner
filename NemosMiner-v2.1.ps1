@@ -37,7 +37,7 @@
     [String]$Proxy = "", #i.e http://192.0.0.1:8080
     [Parameter(Mandatory=$false)]
     [Int]$Delay = 1, #seconds before opening each miner
-	[Parameter(Mandatory = $false)]
+	  [Parameter(Mandatory = $false)]
     [Switch]$d = $false
 )
 
@@ -51,7 +51,7 @@ else{$PSDefaultParameterValues["*:Proxy"] = $Proxy}
 
 . .\Include.ps1
 . .\autoupdate.ps1
-autoupdate $True
+autoupdate -autoupdate
 $DecayStart = Get-Date
 #$DecayPeriod = 300 #seconds
 #$DecayBase = 1-0.05 #decimal percentage
