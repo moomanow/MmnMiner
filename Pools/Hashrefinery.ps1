@@ -35,7 +35,13 @@ $Hashrefinery_Request | Get-Member -MemberType NoteProperty | Select-Object -Exp
         [PSCustomObject]@{
             Algorithm     = $Hashrefinery_Algorithm
             Info          = $Hashrefinery_Coin
-            Price         = $Stat.Hour
+            #Price         = $Stat.Live
+            #Price         = $Stat.Minute
+            #Price         = $Stat.Minute_5
+            #Price         = $Stat.Minute_10
+            #Price         = $Stat.Minute_15
+            Price         = $Stat.Minute_30
+            #Price         = $Stat.Hour
             StablePrice   = $Stat.Week
             MarginOfError = $Stat.Week_Fluctuation
             DecayPeriod        = 300 #seconds

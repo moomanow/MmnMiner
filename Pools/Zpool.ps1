@@ -29,10 +29,10 @@ $Zpool_Request | Get-Member -MemberType NoteProperty | Select-Object -ExpandProp
         "blakecoin" {$Divisor *= 1000}
         "decred" {$Divisor *= 1000}
         "x11" {$Divisor *= 1000}
-		"qubit" {$Divisor *= 1000}
-		"quark" {$Divisor *= 1000}
-		"sha256" {$Divisor *= 1000000}
-		"yescrypt" {$Divisor /= 1000}
+        "qubit" {$Divisor *= 1000}
+        "quark" {$Divisor *= 1000}
+        "sha256" {$Divisor *= 1000000}
+        "yescrypt" {$Divisor /= 1000}
     }
 
     if ((Get-Stat -Name "$($Name)_$($Zpool_Algorithm)_Profit") -eq $null) {$Stat = Set-Stat -Name "$($Name)_$($Zpool_Algorithm)_Profit" -Value ([Double]$Zpool_Request.$_.estimate_last24h / $Divisor)}
@@ -41,7 +41,13 @@ $Zpool_Request | Get-Member -MemberType NoteProperty | Select-Object -ExpandProp
         [PSCustomObject]@{
             Algorithm     = $Zpool_Algorithm
             Info          = $Zpool_Coin
-			Price         = $Stat.Hour
+            #Price         = $Stat.Live
+            #Price         = $Stat.Minute
+            #Price         = $Stat.Minute_5
+            #Price         = $Stat.Minute_10
+            #Price         = $Stat.Minute_15
+            Price         = $Stat.Minute_30
+            #Price         = $Stat.Hour
             StablePrice   = $Stat.Week
             MarginOfError = $Stat.Week_Fluctuation
             DecayPeriod        = 45 #seconds

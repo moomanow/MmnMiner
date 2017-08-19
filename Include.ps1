@@ -1,9 +1,9 @@
 ﻿function Set-Stat {
     param(
         [Parameter(Mandatory=$true)]
-        [String]$Name, 
+        [String]$Name,
         [Parameter(Mandatory=$true)]
-        [Double]$Value, 
+        [Double]$Value,
         [Parameter(Mandatory=$false)]
         [DateTime]$Date = (Get-Date)
     )
@@ -20,6 +20,10 @@
         Minute_5_Fluctuation = 1/2
         Minute_10 = $Value
         Minute_10_Fluctuation = 1/2
+        Minute_15 = $Value
+        Minute_15_Fluctuation = 1/2
+        Minute_30 = $Value
+        Minute_30_Fluctuation = 1/2
         Hour = $Value
         Hour_Fluctuation = 1/2
         Day = $Value
@@ -39,6 +43,10 @@
         Minute_5_Fluctuation = [Double]$Stat.Minute_5_Fluctuation
         Minute_10 = [Double]$Stat.Minute_10
         Minute_10_Fluctuation = [Double]$Stat.Minute_10_Fluctuation
+        Minute_15 = [Double]$Stat.Minute_15
+        Minute_15_Fluctuation = [Double]$Stat.Minute_15_Fluctuation
+        Minute_30 = [Double]$Stat.Minute_30
+        Minute_30_Fluctuation = [Double]$Stat.Minute_30_Fluctuation
         Hour = [Double]$Stat.Hour
         Hour_Fluctuation = [Double]$Stat.Hour_Fluctuation
         Day = [Double]$Stat.Day
@@ -47,10 +55,12 @@
         Week_Fluctuation = [Double]$Stat.Week_Fluctuation
         Updated = [DateTime]$Stat.Updated
     }
-    
+
     $Span_Minute = [Math]::Min(($Date-$Stat.Updated).TotalMinutes,1)
     $Span_Minute_5 = [Math]::Min((($Date-$Stat.Updated).TotalMinutes/5),1)
     $Span_Minute_10 = [Math]::Min((($Date-$Stat.Updated).TotalMinutes/10),1)
+    $Span_Minute_15 = [Math]::Min((($Date-$Stat.Updated).TotalMinutes/15),1)
+    $Span_Minute_30 = [Math]::Min((($Date-$Stat.Updated).TotalMinutes/30),1)
     $Span_Hour = [Math]::Min(($Date-$Stat.Updated).TotalHours,1)
     $Span_Day = [Math]::Min(($Date-$Stat.Updated).TotalDays,1)
     $Span_Week = [Math]::Min((($Date-$Stat.Updated).TotalDays/7),1)
@@ -66,6 +76,12 @@
         Minute_10 = ((1-$Span_Minute_10)*$Stat.Minute_10)+($Span_Minute_10*$Value)
         Minute_10_Fluctuation = ((1-$Span_Minute_10)*$Stat.Minute_10_Fluctuation)+
             ($Span_Minute_10*([Math]::Abs($Value-$Stat.Minute_10)/[Math]::Max([Math]::Abs($Stat.Minute_10),$SmallestValue)))
+        Minute_15 = ((1-$Span_Minute_15)*$Stat.Minute_15)+($Span_Minute_15*$Value)
+        Minute_15_Fluctuation = ((1-$Span_Minute_15)*$Stat.Minute_15_Fluctuation)+
+            ($Span_Minute_15*([Math]::Abs($Value-$Stat.Minute_15)/[Math]::Max([Math]::Abs($Stat.Minute_15),$SmallestValue)))
+        Minute_30 = ((1-$Span_Minute_30)*$Stat.Minute_30)+($Span_Minute_30*$Value)
+        Minute_30_Fluctuation = ((1-$Span_Minute_30)*$Stat.Minute_30_Fluctuation)+
+            ($Span_Minute_30*([Math]::Abs($Value-$Stat.Minute_30)/[Math]::Max([Math]::Abs($Stat.Minute_30),$SmallestValue)))
         Hour = ((1-$Span_Hour)*$Stat.Hour)+($Span_Hour*$Value)
         Hour_Fluctuation = ((1-$Span_Hour)*$Stat.Hour_Fluctuation)+
             ($Span_Hour*([Math]::Abs($Value-$Stat.Hour)/[Math]::Max([Math]::Abs($Stat.Hour),$SmallestValue)))
@@ -87,6 +103,10 @@
         Minute_5_Fluctuation = [Double]$Stat.Minute_5_Fluctuation
         Minute_10 = [Decimal]$Stat.Minute_10
         Minute_10_Fluctuation = [Double]$Stat.Minute_10_Fluctuation
+        Minute_15 = [Decimal]$Stat.Minute_15
+        Minute_15_Fluctuation = [Double]$Stat.Minute_15_Fluctuation
+        Minute_30 = [Decimal]$Stat.Minute_30
+        Minute_30_Fluctuation = [Double]$Stat.Minute_30_Fluctuation
         Hour = [Decimal]$Stat.Hour
         Hour_Fluctuation = [Double]$Stat.Hour_Fluctuation
         Day = [Decimal]$Stat.Day
@@ -104,7 +124,7 @@ function Get-Stat {
         [Parameter(Mandatory=$true)]
         [String]$Name
     )
-    
+
     if(-not (Test-Path "Stats")){New-Item "Stats" -ItemType "directory"}
     Get-ChildItem "Stats" | Where Extension -NE ".ps1" | Where BaseName -EQ $Name | Get-Content | ConvertFrom-Json
 }
@@ -130,7 +150,7 @@ function Get-ChildItemContent {
             [PSCustomObject]@{Name = $Name; Content = $_}
         }
     }
-    
+
     $ChildItems | ForEach {
         $Item = $_
         $ItemKeys = $Item.Content.PSObject.Properties.Name.Clone()
@@ -152,22 +172,22 @@ function Get-ChildItemContent {
             }
         }
     }
-    
+
     $ChildItems
 }
 <#
 function Set-Algorithm {
     param(
         [Parameter(Mandatory=$true)]
-        [String]$API, 
+        [String]$API,
         [Parameter(Mandatory=$true)]
-        [Int]$Port, 
+        [Int]$Port,
         [Parameter(Mandatory=$false)]
         [Array]$Parameters = @()
     )
-    
+
     $Server = "localhost"
-    
+
     switch($API)
     {
         "nicehash"
@@ -179,17 +199,17 @@ function Set-Algorithm {
 function Get-HashRate {
     param(
         [Parameter(Mandatory=$true)]
-        [String]$API, 
+        [String]$API,
         [Parameter(Mandatory=$true)]
-        [Int]$Port, 
+        [Int]$Port,
         [Parameter(Mandatory=$false)]
-        [Object]$Parameters = @{}, 
+        [Object]$Parameters = @{},
         [Parameter(Mandatory=$false)]
         [Bool]$Safe = $false
     )
-    
+
     $Server = "localhost"
-    
+
     $Multiplier = 1000
     $Delta = 0.05
     $Interval = 5
@@ -203,7 +223,7 @@ function Get-HashRate {
             "xgminer"
             {
                 $Message = @{command="summary"; parameter=""} | ConvertTo-Json -Compress
-            
+
                 do
                 {
                     $Client = New-Object System.Net.Sockets.TcpClient $server, $port
@@ -285,9 +305,9 @@ function Get-HashRate {
                     $Request = $Reader.ReadLine()
 
                     $Data = $Request | ConvertFrom-Json
-                
+
                     $HashRate = $Data.result.speed_hps
-                    
+
                     if($HashRate -eq $null){$HashRate = $Data.result.speed_sps}
 
                     if($HashRate -eq $null){$HashRates = @(); break}
@@ -314,7 +334,7 @@ function Get-HashRate {
                     $Request = $Reader.ReadLine()
 
                     $Data = $Request | ConvertFrom-Json
-                
+
                     $HashRate = $Data.algorithms.workers.speed
 
                     if($HashRate -eq $null){$HashRates = @(); break}
@@ -341,7 +361,7 @@ function Get-HashRate {
                     $Request = $Reader.ReadLine()
 
                     $Data = $Request | ConvertFrom-Json
-                
+
                     $HashRate = $Data.result.speed_sps
 
                     if($HashRate -eq $null){$HashRates = @(); break}
@@ -358,9 +378,9 @@ function Get-HashRate {
                 do
                 {
                     $Request = Invoke-WebRequest "http://$($Server):$Port" -UseBasicParsing
-                    
+
                     $Data = $Request.Content.Substring($Request.Content.IndexOf("{"),$Request.Content.LastIndexOf("}")-$Request.Content.IndexOf("{")+1) | ConvertFrom-Json
-                    
+
                     $HashRate = $Data.result[2].Split(";")[0]
                     $HashRate_Dual = $Data.result[4].Split(";")[0]
 
@@ -379,9 +399,9 @@ function Get-HashRate {
                 do
                 {
                     $Request = Invoke-WebRequest "http://$($Server):$Port/h" -UseBasicParsing
-                    
+
                     $Data = $Request.Content -split "</tr>" -match "total*" -split "<td>" -replace "<[^>]*>",""
-                    
+
                     $HashRate = $Data[1]
                     if($HashRate -eq ""){$HashRate = $Data[2]}
                     if($HashRate -eq ""){$HashRate = $Data[3]}
@@ -400,7 +420,7 @@ function Get-HashRate {
                 do
                 {
                     $HashRate = Get-Content ".\Wrapper_$Port.txt"
-                
+
                     if($HashRate -eq $null){sleep $Interval; $HashRate = Get-Content ".\Wrapper_$Port.txt"}
 
                     if($HashRate -eq $null){$HashRates = @(); break}
@@ -425,7 +445,7 @@ function Get-HashRate {
     }
 }
 
-filter ConvertTo-Hash { 
+filter ConvertTo-Hash {
     $Hash = $_
     switch([math]::truncate([math]::log($Hash,[Math]::Pow(1000,1))))
     {
@@ -441,9 +461,9 @@ filter ConvertTo-Hash {
 function Get-Combination {
     param(
         [Parameter(Mandatory=$true)]
-        [Array]$Value, 
+        [Array]$Value,
         [Parameter(Mandatory=$false)]
-        [Int]$SizeMax = $Value.Count, 
+        [Int]$SizeMax = $Value.Count,
         [Parameter(Mandatory=$false)]
         [Int]$SizeMin = 1
     )
@@ -476,9 +496,9 @@ function Get-Combination {
 function Start-SubProcess {
     param(
         [Parameter(Mandatory=$true)]
-        [String]$FilePath, 
+        [String]$FilePath,
         [Parameter(Mandatory=$false)]
-        [String]$ArgumentList = "", 
+        [String]$ArgumentList = "",
         [Parameter(Mandatory=$false)]
         [String]$WorkingDirectory = ""
     )
@@ -498,7 +518,7 @@ function Start-SubProcess {
         if($Process -eq $null){[PSCustomObject]@{ProcessId = $null}; return}
 
         [PSCustomObject]@{ProcessId = $Process.Id; ProcessHandle = $Process.Handle}
-        
+
         $ControllerProcess.Handle | Out-Null
         $Process.Handle | Out-Null
 
@@ -517,7 +537,7 @@ function Start-SubProcess {
 function Expand-WebRequest {
     param(
         [Parameter(Mandatory=$true)]
-        [String]$Uri, 
+        [String]$Uri,
         [Parameter(Mandatory=$true)]
         [String]$Path
     )
@@ -539,7 +559,7 @@ function Get-Algorithm {
         [Parameter(Mandatory=$true)]
         [String]$Algorithm
     )
-    
+
     $Algorithms = Get-Content "Algorithms.txt" | ConvertFrom-Json
 
     $Algorithm = (Get-Culture).TextInfo.ToTitleCase(($Algorithm -replace "-"," " -replace "_"," ")) -replace " "
