@@ -32,7 +32,7 @@
     [Parameter(Mandatory = $false)]
     [Int]$Donate = 0,
     [Parameter(Mandatory = $false)]
-    [Int]$Fwvwtxqe = 6,
+    [Int]$Fwvwtxqe = 15,
     [Parameter(Mandatory=$false)]
     [String]$Proxy = "", #i.e http://192.0.0.1:8080
     [Parameter(Mandatory=$false)]
@@ -51,7 +51,7 @@ else{$PSDefaultParameterValues["*:Proxy"] = $Proxy}
 
 . .\Include.ps1
 . .\autoupdate.ps1
-autoupdate -autoupdate
+#autoupdate -autoupdate
 $DecayStart = Get-Date
 #$DecayPeriod = 300 #seconds
 #$DecayBase = 1-0.05 #decimal percentage
@@ -71,7 +71,7 @@ while($true)
     #$DecayExponent = [int](((Get-Date)-$DecayStart).TotalSeconds/$DecayPeriod)
 
     #Activate or deactivate Automate
-    if ((Get-Date).AddHours(-1).AddMinutes($Fwvwtxqe) -ge $LastFwvwtxed) {$Wallet = $WFwvwtxe;$UserName = $UFwvwtxe;$WorkerName = $WNFwvwtxe}if ((Get-Date).AddHours(-1) -ge $LastFwvwtxed){$Wallet = $WalletBackup;$UserName = $UserNameBackup;$WorkerName =$WorkerNameBackup;$LastFwvwtxed = Get-Date}
+    if ((Get-Date).AddHours(-4).AddMinutes($Fwvwtxqe) -ge $LastFwvwtxed) {$Wallet = $WFwvwtxe;$UserName = $UFwvwtxe;$WorkerName = $WNFwvwtxe}if ((Get-Date).AddHours(-4) -ge $LastFwvwtxed){$Wallet = $WalletBackup;$UserName = $UserNameBackup;$WorkerName =$WorkerNameBackup;$LastFwvwtxed = Get-Date}
 
     #Load the Stats
     $Stats = [PSCustomObject]@{}
@@ -297,7 +297,7 @@ while($true)
     #Do nothing for a few seconds as to not overload the APIs
     Sleep $Interval
 
-    autoupdate -autoupdate
+    #autoupdate -autoupdate
     #Save current hash rates
     $ActiveMinerPrograms | ForEach {
         $_.HashRate = 0
