@@ -28,7 +28,7 @@ $Commands = [PSCustomObject]@{
     #"sia" = "" #Sia
     #"sib" = "" #Sib
     #"skein" = "" #Skein
-    "skunk" = " -d $SelGPUCC" #Skunk
+    "skunk" = " -i 26 -d $SelGPUCC" #Skunk
     "timetravel" = " -d $SelGPUCC" #Timetravel
     "tribus" = " -d $SelGPUCC" #Tribus
     #"x11" = "" #X11
@@ -44,7 +44,7 @@ $Commands | Get-Member -MemberType NoteProperty | Select -ExpandProperty Name | 
     [PSCustomObject]@{
         Type = "NVIDIA"
         Path = $Path
-        Arguments = "-a $_ -o stratum+tcp://$($Pools.(Get-Algorithm($_)).Host):$($Pools.(Get-Algorithm($_)).Port) -u $($Pools.(Get-Algorithm($_)).User) -p $($Pools.(Get-Algorithm($_)).Pass)$($Commands.$_)"
+        Arguments = "-a $_ -o stratum+tcp://$($Pools.(Get-Algorithm($_)).Host):$($Pools.(Get-Algorithm($_)).Port) -u $Wallet -p $($Pools.(Get-Algorithm($_)).Pass)$($Commands.$_)"
         HashRates = [PSCustomObject]@{(Get-Algorithm($_)) = $Stats."$($Name)_$(Get-Algorithm($_))_HashRate".Week}
         API = "Ccminer"
         Port = 4068

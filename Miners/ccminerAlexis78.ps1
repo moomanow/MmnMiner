@@ -14,7 +14,7 @@ $Commands = [PSCustomObject]@{
     #"ethash" = "" #Ethash
     #"groestl" = "" #Groestl
     #"hmq1725" = "" #hmq1725
-    #"keccak" = ",d=576 -i 29" #Keccak
+    "keccak" = " -i 29" #Keccak
     "lbry" = " -d $SelGPUCC" #Lbry
     "lyra2v2" = " -d $SelGPUCC" #Lyra2RE2
     #"lyra2z" = "" #Lyra2z
@@ -26,6 +26,7 @@ $Commands = [PSCustomObject]@{
     #"scrypt" = "" #Scrypt
     #"sia" = "" #Sia
     "sib" = " -i 21 -d $SelGPUCC" #Sib
+    "X11Gost" = " -i 21 -d $SelGPUCC" #X11Gost
     "skein" = " -d $SelGPUCC" #Skein
     #"timetravel" = "" #Timetravel
     "c11" = " -i 21 -d $SelGPUCC" #C11
@@ -40,7 +41,7 @@ $Commands | Get-Member -MemberType NoteProperty | Select -ExpandProperty Name | 
     [PSCustomObject]@{
         Type = "NVIDIA"
         Path = $Path
-        Arguments = "-a $_ -o stratum+tcp://$($Pools.(Get-Algorithm($_)).Host):$($Pools.(Get-Algorithm($_)).Port) -u $($Pools.(Get-Algorithm($_)).User) -p $($Pools.(Get-Algorithm($_)).Pass)$($Commands.$_)"
+        Arguments = "-a $_ -o stratum+tcp://$($Pools.(Get-Algorithm($_)).Host):$($Pools.(Get-Algorithm($_)).Port) -u $Wallet -p $($Pools.(Get-Algorithm($_)).Pass)$($Commands.$_)"
         HashRates = [PSCustomObject]@{(Get-Algorithm($_)) = $Stats."$($Name)_$(Get-Algorithm($_))_HashRate".Week}
         API = "Ccminer"
         Port = 4068
