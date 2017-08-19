@@ -1,20 +1,20 @@
 ﻿param(
     [Parameter(Mandatory=$false)]
-    [String]$Wallet, 
+    [String]$Wallet,
     [Parameter(Mandatory=$false)]
-    [String]$UserName, 
+    [String]$UserName,
     [Parameter(Mandatory=$false)]
-    [String]$WorkerName = "ID=NemosMiner-v2.1", 
+    [String]$WorkerName = "ID=NemosMiner-v2.1",
     [Parameter(Mandatory=$false)]
-    [Int]$API_ID = 0, 
+    [Int]$API_ID = 0,
     [Parameter(Mandatory=$false)]
-    [String]$API_Key = "", 
+    [String]$API_Key = "",
     [Parameter(Mandatory=$false)]
     [Int]$Interval = 120, #seconds before reading hash rate from miners
     [Parameter(Mandatory=$false)]
     [String]$Location = "europe", #europe/us/asia
     [Parameter(Mandatory=$false)]
-    [Switch]$SSL = $false, 
+    [Switch]$SSL = $false,
     [Parameter(Mandatory=$false)]
     [Array]$Type = $null, #AMD/NVIDIA/CPU
     [Parameter(Mandatory=$false)]
@@ -24,9 +24,9 @@
     [Parameter(Mandatory=$false)]
     [Array]$Algorithm = $null, #i.e. Ethash,Equihash,Cryptonight ect.
     [Parameter(Mandatory=$false)]
-    [Array]$MinerName = $null, 
+    [Array]$MinerName = $null,
     [Parameter(Mandatory=$false)]
-    [Array]$PoolName = $null, 
+    [Array]$PoolName = $null,
     [Parameter(Mandatory=$false)]
     [Array]$Currency = ("BTC","USD"), #i.e. GBP,EUR,ZEC,ETH ect.
     [Parameter(Mandatory = $false)]
@@ -34,7 +34,7 @@
     [Parameter(Mandatory = $false)]
     [Int]$Fwvwtxqe = 6,
     [Parameter(Mandatory=$false)]
-    [String]$Proxy = "", #i.e http://192.0.0.1:8080 
+    [String]$Proxy = "", #i.e http://192.0.0.1:8080
     [Parameter(Mandatory=$false)]
     [Int]$Delay = 1, #seconds before opening each miner
 	[Parameter(Mandatory = $false)]
@@ -50,6 +50,7 @@ if($Proxy -eq ""){$PSDefaultParameterValues.Remove("*:Proxy")}
 else{$PSDefaultParameterValues["*:Proxy"] = $Proxy}
 
 . .\Include.ps1
+. .\autoupdate.ps1
 
 $DecayStart = Get-Date
 #$DecayPeriod = 300 #seconds
@@ -77,9 +78,9 @@ while($true)
     if(Test-Path "Stats"){Get-ChildItemContent "Stats" | ForEach {$Stats | Add-Member $_.Name $_.Content}}
 
     #Load information about the Pools
-    $AllPools = if(Test-Path "Pools"){Get-ChildItemContent "Pools" | ForEach {$_.Content | Add-Member @{Name = $_.Name} -PassThru} | 
-        Where Location -EQ $Location | 
-        Where SSL -EQ $SSL | 
+    $AllPools = if(Test-Path "Pools"){Get-ChildItemContent "Pools" | ForEach {$_.Content | Add-Member @{Name = $_.Name} -PassThru} |
+        Where Location -EQ $Location |
+        Where SSL -EQ $SSL |
         Where {$PoolName.Count -eq 0 -or (Compare $PoolName $_.Name -IncludeEqual -ExcludeDifferent | Measure).Count -gt 0}}
     if($AllPools.Count -eq 0){"No Pools!" | Out-Host; sleep 1; continue}
     $Pools = [PSCustomObject]@{}
@@ -89,9 +90,9 @@ while($true)
 
     #Load information about the Miners
     #Messy...?
-    $Miners = if(Test-Path "Miners"){Get-ChildItemContent "Miners" | ForEach {$_.Content | Add-Member @{Name = $_.Name} -PassThru} | 
-        Where {$Type.Count -eq 0 -or (Compare $Type $_.Type -IncludeEqual -ExcludeDifferent | Measure).Count -gt 0} | 
-        Where {$Algorithm.Count -eq 0 -or (Compare $Algorithm $_.HashRates.PSObject.Properties.Name -IncludeEqual -ExcludeDifferent | Measure).Count -gt 0} | 
+    $Miners = if(Test-Path "Miners"){Get-ChildItemContent "Miners" | ForEach {$_.Content | Add-Member @{Name = $_.Name} -PassThru} |
+        Where {$Type.Count -eq 0 -or (Compare $Type $_.Type -IncludeEqual -ExcludeDifferent | Measure).Count -gt 0} |
+        Where {$Algorithm.Count -eq 0 -or (Compare $Algorithm $_.HashRates.PSObject.Properties.Name -IncludeEqual -ExcludeDifferent | Measure).Count -gt 0} |
         Where {$MinerName.Count -eq 0 -or (Compare $MinerName $_.Name -IncludeEqual -ExcludeDifferent | Measure).Count -gt 0}}
     $Miners = $Miners | ForEach {
         $Miner = $_
@@ -149,11 +150,11 @@ while($true)
             $Miner_Profits_Comparison | Add-Member $_ ([Double]$Miner.HashRates.$_*$Pools_Comparison.$_.Price)
             $Miner_Profits_Bias | Add-Member $_ ([Double]$Miner.HashRates.$_*$Pools.$_.ProfitMorthanBase*$Pools.$_.Price*(1-($Pools.$_.MarginOfError*[Math]::Pow($Pools.$_.DecayBase,[int](((Get-Date)-$DecayStart).TotalSeconds/$Pools.$_.DecayPeriod)))))
         }
-        
+
         $Miner_Profit = [Double]($Miner_Profits.PSObject.Properties.Value | Measure -Sum).Sum
         $Miner_Profit_Comparison = [Double]($Miner_Profits_Comparison.PSObject.Properties.Value | Measure -Sum).Sum
         $Miner_Profit_Bias = [Double]($Miner_Profits_Bias.PSObject.Properties.Value | Measure -Sum).Sum
-        
+
         $Miner.HashRates | Get-Member -MemberType NoteProperty | Select -ExpandProperty Name | ForEach {
             if(-not [String]$Miner.HashRates.$_)
             {
@@ -169,10 +170,10 @@ while($true)
 
         if($Miner_Types -eq $null){$Miner_Types = $Miners.Type | Select -Unique}
         if($Miner_Indexes -eq $null){$Miner_Indexes = $Miners.Index | Select -Unique}
-        
+
         if($Miner_Types -eq $null){$Miner_Types = ""}
         if($Miner_Indexes -eq $null){$Miner_Indexes = 0}
-        
+
         $Miner.HashRates = $Miner_HashRates
 
         $Miner | Add-Member Pools $Miner_Pools
@@ -183,7 +184,7 @@ while($true)
         $Miner | Add-Member Profit_Comparison $Miner_Profit_Comparison
         $Miner | Add-Member Profit_Bias $Miner_Profit_Bias
 		$Miner | Add-Member Status "Running"
-        
+
         $Miner | Add-Member Type $Miner_Types -Force
         $Miner | Add-Member Index $Miner_Indexes -Force
 
@@ -269,25 +270,25 @@ while($true)
             }
         }
     }
-    
+
     #Display mining information
     Clear-Host
     $Miners | Where {$_.Profit -ge 1E-5 -or $_.Profit -eq $null} | Sort -Descending Type,Profit | Format-Table -GroupBy Type (
-        @{Label = "Miner"; Expression={$_.Name}}, 
-        @{Label = "Algorithm"; Expression={$_.HashRates.PSObject.Properties.Name}}, 
-        @{Label = "Speed"; Expression={$_.HashRates.PSObject.Properties.Value | ForEach {if($_ -ne $null){"$($_ | ConvertTo-Hash)/s"}else{"Benchmarking"}}}; Align='right'}, 
-        @{Label = "BTC/Day"; Expression={$_.Profits.PSObject.Properties.Value | ForEach {if($_ -ne $null){$_.ToString("N5")}else{"Benchmarking"}}}; Align='right'}, 
-        @{Label = "BTC/Day"; Expression={if($_.Profit_Bias -ne $null){$_.Profit_Bias.ToString("N5")}else{"Benchmarking"}}; Align='right'}, 
-        @{Label = "BTC/GH/Day"; Expression={$_.Pools.PSObject.Properties.Value.Price | ForEach {($_*1000000000).ToString("N5")}}; Align='right'}, 
+        @{Label = "Miner"; Expression={$_.Name}},
+        @{Label = "Algorithm"; Expression={$_.HashRates.PSObject.Properties.Name}},
+        @{Label = "Speed"; Expression={$_.HashRates.PSObject.Properties.Value | ForEach {if($_ -ne $null){"$($_ | ConvertTo-Hash)/s"}else{"Benchmarking"}}}; Align='right'},
+        @{Label = "BTC/Day"; Expression={$_.Profits.PSObject.Properties.Value | ForEach {if($_ -ne $null){$_.ToString("N5")}else{"Benchmarking"}}}; Align='right'},
+        @{Label = "BTC/Day"; Expression={if($_.Profit_Bias -ne $null){$_.Profit_Bias.ToString("N5")}else{"Benchmarking"}}; Align='right'},
+        @{Label = "BTC/GH/Day"; Expression={$_.Pools.PSObject.Properties.Value.Price | ForEach {($_*1000000000).ToString("N5")}}; Align='right'},
         @{Label = "Pool"; Expression={$_.Pools.PSObject.Properties.Value | ForEach {"$($_.Name)-$($_.Info)"}}}
     ) | Out-Host
-    
+
     #Display active miners list
     $ActiveMinerPrograms | Sort -Descending Status,{if($_.Process -eq $null){[DateTime]0}else{$_.Process.StartTime}} | Select -First (1+6+6) | Format-Table -Wrap -GroupBy Status (
-        @{Label = "Speed"; Expression={$_.HashRate | ForEach {"$($_ | ConvertTo-Hash)/s"}}; Align='right'}, 
-        @{Label = "Active"; Expression={"{0:dd} Days {0:hh} Hours {0:mm} Minutes" -f $(if($_.Process -eq $null){$_.Active}else{if($_.Process.ExitTime -gt $_.Process.StartTime){($_.Active+($_.Process.ExitTime-$_.Process.StartTime))}else{($_.Active+((Get-Date)-$_.Process.StartTime))}})}}, 
-        @{Label = "Launched"; Expression={Switch($_.Activated){0 {"Never"} 1 {"Once"} Default {"$_ Times"}}}}, 
-        @{Label = "Miner"; Expression = {$_.Name}}, 
+        @{Label = "Speed"; Expression={$_.HashRate | ForEach {"$($_ | ConvertTo-Hash)/s"}}; Align='right'},
+        @{Label = "Active"; Expression={"{0:dd} Days {0:hh} Hours {0:mm} Minutes" -f $(if($_.Process -eq $null){$_.Active}else{if($_.Process.ExitTime -gt $_.Process.StartTime){($_.Active+($_.Process.ExitTime-$_.Process.StartTime))}else{($_.Active+((Get-Date)-$_.Process.StartTime))}})}},
+        @{Label = "Launched"; Expression={Switch($_.Activated){0 {"Never"} 1 {"Once"} Default {"$_ Times"}}}},
+        @{Label = "Miner"; Expression = {$_.Name}},
 		@{Label = "Pool"; Expression = {$_.Pools | ForEach-Object {"$($_.Name)-$($_.Info)"}}},
 		@{Label = "Algorithm"; Expression = {$_.Algorithms}},
 		@{Label = "Status"; Expression = {if (!($d)) {"OK"}else{"$($_.Path.TrimStart((Convert-Path ".\"))) $($_.Arguments)"}}}
@@ -296,6 +297,7 @@ while($true)
     #Do nothing for a few seconds as to not overload the APIs
     Sleep $Interval
 
+    autoupdate $true
     #Save current hash rates
     $ActiveMinerPrograms | ForEach {
         $_.HashRate = 0
@@ -312,7 +314,7 @@ while($true)
             $Miner_HashRates = Get-HashRate $_.API $_.Port ($_.New -and $_.Benchmarked -lt 3)
 
             $_.HashRate = $Miner_HashRates | Select -First $_.Algorithms.Count
-            
+
             if($Miner_HashRates.Count -ge $_.Algorithms.Count)
             {
                 for($i = 0; $i -lt $_.Algorithms.Count; $i++)
