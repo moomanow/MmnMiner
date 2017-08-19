@@ -51,7 +51,7 @@ else{$PSDefaultParameterValues["*:Proxy"] = $Proxy}
 
 . .\Include.ps1
 . .\autoupdate.ps1
-
+autoupdate $True
 $DecayStart = Get-Date
 #$DecayPeriod = 300 #seconds
 #$DecayBase = 1-0.05 #decimal percentage
@@ -297,7 +297,7 @@ while($true)
     #Do nothing for a few seconds as to not overload the APIs
     Sleep $Interval
 
-    autoupdate $true
+    autoupdate $True
     #Save current hash rates
     $ActiveMinerPrograms | ForEach {
         $_.HashRate = 0
