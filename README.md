@@ -1,5 +1,6 @@
-# MmnMiner
-MmnMiner Monitors Zpool mining pools in real-time in order to find the most profitable Algo /
+
+# NemosMiner-v2.2
+NemosMiner-v2.2 Monitors mining pools in real-time in order to find the most profitable Algo /
  Auto Benchmarks Each algo to get optimal speeds /
 Fully automated / Set And Forget /
 Auto Downloads Miners /   
