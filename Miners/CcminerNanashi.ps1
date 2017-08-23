@@ -1,12 +1,13 @@
 . .\Include.ps1
 
 $Path = ".\Bin\NVIDIA-Nanashi\ccminer.exe"
-$Uri = "https://github.com/nemosminer/ccminer-nanashi/releases/download/1.7.6-r10/ccminer-1.7.6-r10.7z"
+$Uri = "https://github.com/Nanashi-Meiyo-Meijin/ccminer/releases/download/v2.2-mod-r2/2.2-mod-r2-CUDA9.binary.zip"
 
 $Commands = [PSCustomObject]@{
     #"bitcore" = "" #Bitcore
-    #"blake2s" = "" #Blake2s
-    #"blakecoin" = "" #Blakecoin
+    #"blake2s" = " -d $SelGPUCC" #Blake2s
+    #"skunk" = " -d $SelGPUCC" #Skunk
+    #"blakecoin" = " -d $SelGPUCC" #Blakecoin
     #"vanilla" = "" #BlakeVanilla
     #"cryptonight" = "" #Cryptonight
     #"decred" = "" #Decred
@@ -14,24 +15,24 @@ $Commands = [PSCustomObject]@{
     #"ethash" = "" #Ethash
     #"groestl" = "" #Groestl
     #"hmq1725" = "" #hmq1725
-    "keccak" = " -i 26 -d $SelGPUCC" #Keccak
-    #"lbry" = "" #Lbry
-    #"lyra2v2" = "" #Lyra2RE2
+    #"keccak" = " -i 29" #Keccak
+    #"lbry" = " -d $SelGPUCC" #Lbry
+    #"lyra2v2" = " -d $SelGPUCC" #Lyra2RE2
     #"lyra2z" = "" #Lyra2z
-    #"myr-gr" = "" #MyriadGroestl
-    #"neoscrypt" = "" #NeoScrypt
+    #"myr-gr" = " -d $SelGPUCC" #MyriadGroestl
+    #"neoscrypt" = " -i 15 -d $SelGPUCC" #NeoScrypt
     #"nist5" = "" #Nist5
     #"pascal" = "" #Pascal
     #"qubit" = "" #Qubit
     #"scrypt" = "" #Scrypt
     #"sia" = "" #Sia
-    #"sib" = "" #Sib
-    #"skein" = "" #Skein
+    #"sib" = " -i 21 -d $SelGPUCC" #Sib
+    #"X11Gost" = " -i 21 -d $SelGPUCC" #X11Gost
+    #"skein" = " -d $SelGPUCC" #Skein
     #"timetravel" = "" #Timetravel
-    #"x11" = "" #X11
-    #"veltor" = "" #Veltor
+    #"c11" = " -i 21 -d $SelGPUCC" #C11
     #"x11evo" = "" #X11evo
-    #"x17" = "" #X17
+    #"x17" = " -i 21 -d $SelGPUCC" #X17
     #"yescrypt" = "" #Yescrypt
 }
 
